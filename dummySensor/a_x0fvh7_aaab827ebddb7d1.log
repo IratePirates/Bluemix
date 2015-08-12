@@ -1,9 +1,0 @@
-2015-08-11 10:55:33,026   ibmiotf.application.Client  WARNING Unable to encrypt messages because TLSv1.2 is unavailable (MQTT over SSL requires at least Python v2.7.9 or 3.4 and openssl v1.0.1)
-2015-08-11 10:55:33,209   ibmiotf.application.Client  INFO    Connected successfully: a:x0fvh7:aaab827ebddb7d1
-2015-08-11 10:56:56,378   ibmiotf.application.Client  WARNING Unable to encrypt messages because TLSv1.2 is unavailable (MQTT over SSL requires at least Python v2.7.9 or 3.4 and openssl v1.0.1)
-2015-08-11 10:57:12,967   ibmiotf.application.Client  WARNING Unable to encrypt messages because TLSv1.2 is unavailable (MQTT over SSL requires at least Python v2.7.9 or 3.4 and openssl v1.0.1)
-2015-08-11 10:57:13,039   ibmiotf.application.Client  INFO    Connected successfully: a:x0fvh7:aaab827ebddb7d1
-2015-08-11 11:12:40,942   ibmiotf.application.Client  WARNING Unable to encrypt messages because TLSv1.2 is unavailable (MQTT over SSL requires at least Python v2.7.9 or 3.4 and openssl v1.0.1)
-2015-08-11 11:12:41,195   ibmiotf.application.Client  INFO    Connected successfully: a:x0fvh7:aaab827ebddb7d1
-2015-08-11 11:39:27,163   ibmiotf.application.Client  WARNING Unable to encrypt messages because TLSv1.2 is unavailable (MQTT over SSL requires at least Python v2.7.9 or 3.4 and openssl v1.0.1)
-2015-08-11 11:39:27,330   ibmiotf.application.Client  INFO    Connected successfully: a:x0fvh7:aaab827ebddb7d1
