@@ -1,8 +1,10 @@
 #!/usr/bin/python2.4
 #
 # Small script to show PostgreSQL and Pyscopg together
+# TODO - fix string formatting so that rogue punctuation does not break any of the queries...
 #
 import os
+import json
 from flask import Flask
 import psycopg2
 
@@ -31,32 +33,28 @@ def populateDbList():
             dbAvailable.append(table)
         conn.commit() 
     except Exception as e:
-        print "I am unable to create table - %s" %(e)
+        print "Error Populating DB list - %s" %(e)
     finally:
         conn.close()
         conn = None
-    return "Creating DataBase"
 
 @app.route('/new')
-def createTableInPostGresDb(name='test'):
+def createTableInPostGresDb(name="test"):
     global dbAvailable
     try:
         conn = psycopg2.connect(** params)
         cursor = conn.cursor()
-        cursor.execute("DROP TABLE IF EXISTS %s", (name))
-        print"here"
-        cursor.execute("CREATE TABLE %s (id serial PRIMARY KEY, num integer, data varchar);",(name) )
-        print "got here"
-        cursor.execute("INSERT INTO %s (num, data) VALUES (%s, %s)",(name, 100, "abc'def"))
-        print "and got here"
+        cursor.execute("DROP TABLE IF EXISTS %s" % (name))
+        cursor.execute("CREATE TABLE %s (id serial PRIMARY KEY, num integer, data varchar);"%(name))
+        cursor.execute("INSERT INTO %s (num, data) VALUES (%s, %s)" %(name, "%s", "%s") , (100, "abc'def"))
         dbAvailable.append(name)
         conn.commit() 
     except Exception as e:
-        print "I am unable to create table - %s" %(e)
+        print "Error creating table - %s" %(e)
     finally:
         conn.close()
         conn = None
-    return "Creating DataBase"
+    return "Creating Table in DataBase"
 
 @app.route('/del')
 def destroyTableInPostGresDb(name='test'):
@@ -66,14 +64,14 @@ def destroyTableInPostGresDb(name='test'):
             conn = psycopg2.connect(** params)
             cursor = conn.cursor()
             for db in dbAvailable:
-                cursor.execute("DROP TABLE IF EXISTS %s" %(db))
+                cursor.execute("DROP TABLE IF EXISTS %s" % (name))
                 #TODO - Clean up possible synchronisation issues
                 dbAvailable.remove(db)
             conn.commit()
         else:
             return "No tables exist"
     except Exception as e:
-        print "I am unable to delete tables - %s" %(e)
+        print "Error deleting tables - %s" %(e)
     finally:
         conn.close()
         conn = None
@@ -86,34 +84,34 @@ def EntryinDb(name='test'):
         try:
             conn = psycopg2.connect(** params)
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO %s (num, data) VALUES (%s, %s)",(name, 100, "abc'def"))
+            cursor.execute("INSERT INTO %s (num, data) VALUES (%s, %s)" % (name, "%s", "%s"), (100, "abc'def"))
             conn.commit() 
         except Exception as e:
-            print "I am unable to create table - %s" %(e)
+            print "Error adding Entry to Table - %s" %(e)
         finally:
             conn.close()
             conn = None
-        return "Creating DataBase"
+        return "Adding Entry to Table"
     else:
         return "No table available to insert Data into"
 
 @app.route('/view')
 def viewDb(name='test'):
     global dbAvailable
-    tmp = []
+    tmp = None
     if len(dbAvailable) > 0:
     #if name in dbAvailable
         try:
             conn = psycopg2.connect(** params)
             cursor = conn.cursor()
             cursor.execute("SELECT * from %s" %(name))
-            tmp = cursor
+            tmp = cursor.fetchall()
         except Exception as e:
-            print "I am unable to create table - %s" %(e)
+            print "Error Viewing Table - %s" %(e)
         finally:
             conn.close()
             conn = None
-        return tmp
+        return "There are %s members in the array"% (len(tmp)) #requires jinja and some clever web stuff to return to the GUI, so for the moment return the size of array
     else:
         return "No Database available"
 
