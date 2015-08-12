@@ -33,8 +33,6 @@ def myCommandCallback(cmd):
 try:
 	print ("Parsing Config")
 	options = ibmiotf.device.ParseConfigFile("/home/pi/dummySensor/device.cfg")
-	options["deviceId"] = options["id"]
-	options["id"] = options["deviceId"]
 	client = ibmiotf.device.Client(options)
 	client.connect()
 	client.commandCallback = myCommandCallback
