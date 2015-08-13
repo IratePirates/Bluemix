@@ -55,7 +55,7 @@ def myEventCallback(event):
 		print(msgStr % (event.format, event.event, event.device, json.dumps(event.data)))
 		if (evCount < 3 ):
 			debugCmd("Establishing Connection")
-		evCount = evCount + 1 
+		evCount = evCount + 1
 	except Exception as e:
 		print "Error in Event Callback"
 		print e
