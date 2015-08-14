@@ -1,5 +1,5 @@
+#!/usr/bin/python2.7
 import os
-import json
 import ibmiotf.application
 #import ibmiotf.device
 from flask import Flask
@@ -8,6 +8,10 @@ client = None
 options = None
 evCount = 0
 cmdCount = 0
+
+#flags to control
+expectingDataFlag = False
+rxData= []
 
 app = Flask(__name__)
 
@@ -31,7 +35,7 @@ def myStatusCallback(status):
 		print "Error in Status Callback"
 		print e
 
-def sendCmd(command, payload, device="raspberrypi" ):
+def sendCmd(command, payload ="", device="raspberrypi" ):
 	#TODO - CLEAN ME up for general useage
 	try:
 		global cmdCount
@@ -47,14 +51,34 @@ def sendCmd(command, payload, device="raspberrypi" ):
 def debugCmd(message):
 			payload = {'message' : message}
 			sendCmd("print", payload)
-			
+
+
 def myEventCallback(event):
+	global evCount
+	global rxData, expectingDataFlag
+
 	try:
-		global evCount
-		msgStr = "%s event '%s' received from device [%s]: %s"
-		print(msgStr % (event.format, event.event, event.device, json.dumps(event.data)))
-		if (evCount < 3 ):
-			debugCmd("Establishing Connection")
+		#msgStr = "%s event '%s' received from device [%s]: %s"
+		#print(msgStr % (event.format, event.event, event.device, json.dumps(event.data)))
+		if event.event == "devStat":
+			if (evCount < 3 ):
+				debugCmd("Establishing Connection")
+
+		elif event.event == "dataFrag":
+			if expectingDataFlag:
+				print "receiving Fragmented Data Packet %s of %s" % (event.data['pkt'], event.data['maxPkt'])
+
+				if (len(rxData) <= event.data['maxPkt']):
+					#store data as tuple with packet number to allow for error checking
+					rxData.append((event.data['pkt'], event.data['d'].encode('utf-8')))
+
+					if (len(rxData) == event.data['maxPkt']):
+						"Received All Data"
+						expectingDataFlag = False
+				else:
+					print "Something's wrong..."
+			else:
+				print "Not expecting Data"
 		evCount = evCount + 1
 	except Exception as e:
 		print "Error in Event Callback"
@@ -70,12 +94,12 @@ try:
 	client.connect()
 	client.deviceEventCallback = myEventCallback
 	client.subscribeToDeviceEvents()
-	
+
 	#set up Status Callbacks 
 	client.deviceStatusCallback = myStatusCallback
 	client.subscribeToDeviceStatus()
 	print "...Connected"
-	
+
 except ibmiotf.ConnectionException  as e:
 	print "Error on grabbing IoT Configuration - %s" % (e)
 except Exception as err:
@@ -85,5 +109,36 @@ except Exception as err:
 def hello():
 	return 'Hello World! I am running on port ' + str(port) + '; evCnt = ' + str(evCount) + '; cmdCnt = ' + str(cmdCount)
 
-if __name__ == "__main__":		
+@app.route('/getdata')
+def sendDataCommand():
+	global expectingDataFlag, dataAvailFlag, rxData
+
+	#clear list of data
+	while len(rxData) > 0 : rxData.pop()
+
+	expectingDataFlag = True
+
+	sendCmd("transmitData")
+
+	return "No data Received from device"
+
+@app.route('/showdata')
+def showData():
+	global rxData
+	try:
+		print rxData
+		if len(rxData):
+			#extract data from list
+			result = [x[1] for x in sorted(rxData, key=lambda tup: tup[0])]
+
+			#Do Any Error Correction in here...?
+
+			#Flatten list
+			return ''.join(result)
+		else:
+			return "No data Received from device"
+	except Exception as e:
+		print "Error Showing data - %s" % (e)
+
+if __name__ == "__main__":
 	app.run(host='0.0.0.0', port=int(port))

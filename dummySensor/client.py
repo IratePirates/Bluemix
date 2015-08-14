@@ -5,7 +5,7 @@ import ibmiotf.device
 from datetime import datetime
 
 client = None
-interval = 10
+interval = 20
 cmdCount = 0
 evCount = 0
 transmitData = False
@@ -15,7 +15,7 @@ def sendStatusEvent(client):
 
 	myQoSLevel=2
 	myData = str(datetime.now())
-	client.publishEvent("mayflyTime", "json", myData, myQoSLevel)
+	client.publishEvent("devStat", "json", myData, myQoSLevel)
 	print "Publishing evCount: %d ; cmdCount: %d" %(evCount, cmdCount)
 	evCount = evCount + 1
 
@@ -43,9 +43,9 @@ def sendPacketFragged(client, path="/home/pi/dummySensor/Sample.txt", bufferSize
 			for i in range(0 , totalChunks) :
 				pktNum =i+1
 
-				myData = {	'pkt' : pktNum, 'totpkt' : totalChunks, \
-							'payload':dataSrc[i]}
-				client.publishEvent("DataFrag", "json", myData, myQoSLevel)
+				myData = {	'pkt' : pktNum, 'maxPkt' : totalChunks, \
+							'd':dataSrc[i]}
+				client.publishEvent("dataFrag", "json", myData, myQoSLevel)
 
 				print "Publishing Data Fragmented as Event pkt %i of %i, evCount: %d ; cmdCount: %d" \
 					%(pktNum, totalChunks, evCount, cmdCount)
