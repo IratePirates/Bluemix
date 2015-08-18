@@ -1,10 +1,15 @@
-import time
+import datetime
 import json
+import select, sys
+
+import threading
+
 from sharedLibs import hermod #Messenger Module -  the good messenger gods were already taken...
 
 cmdCount = 0
 interval = 20
 transmitData = False
+messenger = None
 
 def demoCommandCallback(cmd):
 	try:
@@ -30,27 +35,39 @@ def demoCommandCallback(cmd):
 	except Exception as err:
 		print "Command Callback Err - %s " %(err)
 
+def publish_status_on_interval():
+	try:
+		if messenger:
+			t = threading.Timer(interval, publish_status_on_interval)
+			t.start()
+			messenger.publishEvent(myData=str(datetime.datetime.utcnow()), msgType="devStat")
+		else:
+			print"No Messenger Attached."
+	except Exception as err:
+		print "Error Scheduling Status update - %s " %(err)
+
 try:
 	print "Configure Device Messenger"
 	messenger = hermod.device("./clientFiles/device.cfg")
 	messenger.registerCmdCallback(demoCommandCallback)
+
 	print "Begin to Send Data..."
+	publish_status_on_interval()
+
+	print "I'm doing stuff. Press Enter to stop me!"
+
 	while True:
-
 		try:
-			if transmitData:
-				messenger.fileSend("./clientFiles/Sample.txt")
-				transmitData = False
+			#os.system('cls' if os.name == 'nt' else 'clear')
+			if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+				line = raw_input()
+				print "Pausing transmissions"
+				#Do command line control Stuff in here...
+				break
 			else:
-				# Additional flow control can be added with a raw_input string
-				# example: http://stackoverflow.com/questions/7255463/exit-while-loop-by-user-hitting-enter-key
-					# N.B. would require second thread for message control e.g. : http://pymotw.com/2/multiprocessing/basics.html
-
-				messenger.publishEvent(myData=time.sleep(interval), msgType="devStat")
-				# Max length of MQTT message is 4kB, currently. This will include MQTT headers(Topic, etc), IoT headers + Timestamp.
-					#topic = 'iot-2/evt/'+event+'/fmt/' + msgFormat
-					#MQTT payload = JSON encoded (data + datetime.now(pytz.timezone('UTC')))
-				#therefore send 2kB chunks + assume success.
+				if transmitData:
+					messenger.fileSend("./clientFiles/Sample.txt")
+					transmitData = False
 		except Exception as err:
 			print "failing to run"
 			print err
@@ -58,3 +75,7 @@ try:
 	messenger.disconnect()
 except Exception as e:
 	print "Exception - %s " %(e)
+finally:
+	messenger.disconnect()
+	messenger = None
+	print "Enter pressed- exiting"
