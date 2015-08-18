@@ -52,7 +52,7 @@ port = os.getenv('VCAP_APP_PORT', '5000')
 
 try:
 	print "Starting Server ... "
-	Server = hermod.server("./iotServer.cfg")
+	Server = hermod.server("./serverFiles/iotServer.cfg")
 	#setup Event CallBacks
 	Server.registerCallbackMethods(demoEventCallback, demoStatusCallback)
 	#set up Status Callbacks 
