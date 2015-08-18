@@ -32,14 +32,14 @@ def demoCommandCallback(cmd):
 
 try:
 	print "Configure Device Messenger"
-	messenger = hermod.device("./deviceFiles/device.cfg")
+	messenger = hermod.device("./clientFiles/device.cfg")
 	messenger.registerCmdCallback(demoCommandCallback)
 	print "Begin to Send Data..."
 	while True:
 
 		try:
 			if transmitData:
-				messenger.fileSend("./deviceFiles/Sample.txt")
+				messenger.fileSend("./clientFiles/Sample.txt")
 				transmitData = False
 			else:
 				# Additional flow control can be added with a raw_input string
