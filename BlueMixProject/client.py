@@ -7,7 +7,7 @@ import threading
 from sharedLibs import hermod #Messenger Module -  the good messenger gods were already taken...
 
 cmdCount = 0
-interval = 20
+interval = 10
 transmitData = False
 messenger = None
 
@@ -28,6 +28,8 @@ def demoCommandCallback(cmd):
 				print "Command received-  '%s' " %(cmd.data['message'])
 		elif cmd.command == "transmitData":
 			transmitData = True
+		elif cmd.command == "aa_ssc_cmd_audio_ack" :
+			print "Received Ack for Audio Package"
 		else:
 			print "Command received: cmd -'%s' ; body -'%s'" %(cmd.command, json.dump(cmd.data))
 			print "Invalid Command"
@@ -38,7 +40,8 @@ def demoCommandCallback(cmd):
 def publish_status_on_interval():
 	try:
 		if messenger:
-			t = threading.Timer(interval, publish_status_on_interval)
+			#This could be done better, has to time out before finishing + requires global messenger obj...
+			t = threading.Timer(int(interval), publish_status_on_interval)
 			t.start()
 			messenger.publishEvent(myData=str(datetime.datetime.utcnow()), msgType="devStat")
 		else:
@@ -62,8 +65,18 @@ try:
 			if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
 				line = raw_input()
 				print "Pausing transmissions"
-				#Do command line control Stuff in here...
-				break
+				line = raw_input()
+				if line :
+					tokens = line.split('=')
+					if tokens[0] == "interval":
+						interval = tokens[1]
+						print "Setting status Interval to %s s" % (interval)
+					elif tokens[0] == 'event':
+						if tokens[1] == 'begin':
+							messenger.publishEvent(myData=str(datetime.datetime.utcnow()), msgType="aa_ssc_ev_audio_begin")
+					else:
+						print "Unknown Command"
+					#Do command line control Stuff in here...
 			else:
 				if transmitData:
 					messenger.fileSend("./clientFiles/Sample.txt")

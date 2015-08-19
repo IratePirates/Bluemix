@@ -36,7 +36,7 @@ class device:
 		try:
 			if self.client :
 				self.client.publishEvent(msgType, encoding, myData, QoS)
-				print "Publishing evCount: %d ;" %(self.evCount)
+				print "Publishing Event - %s ; evCount: %d ;" %(str(msgType), self.evCount )
 				self.evCount = self.evCount + 1
 			else:
 				print "Cannot Publish Event, no Client exists yet"
